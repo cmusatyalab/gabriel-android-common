@@ -160,12 +160,15 @@ public abstract class ServerComm {
         return gotToken;
     }
 
-    /** Wait until there is a token available.
+    /**
+     * Wait until there is a token available.
      *
-     * Then add {@link this.frameID} to {@param fromClientBuilder}. Then build
-     * {@param fromClientBuilder} and send the resulting FromClient.
+     * Then add the current frame ID to fromClientBuilder. Then build
+     * fromClientBuilder and send the resulting FromClient.
      *
-     * Return false if we ran into an error. */
+     * @param fromClientBuilder
+     * @return Return false if we ran into an error.
+     */
     public boolean sendBlocking(FromClient.Builder fromClientBuilder) {
         boolean gotToken = getToken();
 

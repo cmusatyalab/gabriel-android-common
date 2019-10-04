@@ -29,3 +29,5 @@ dependencies {
     api 'com.tinder.scarlet:message-adapter-protobuf:0.1.9'
     api 'com.tinder.scarlet:lifecycle-android:0.1.9'
 }
+
+apply plugin: 'com.vanniktech.maven.publish'

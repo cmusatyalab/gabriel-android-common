@@ -7,15 +7,18 @@ buildscript {
         
     }
     dependencies {
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.8.0'
         classpath 'com.android.tools.build:gradle:3.5.0'
     }
 }
 
 allprojects {
+    group = GROUP
+    version = VERSION_NAME
+
     repositories {
         google()
         jcenter()
-        
     }
 }
 
