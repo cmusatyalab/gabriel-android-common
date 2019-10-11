@@ -1,10 +1,10 @@
-package edu.cmu.cs.gabrielclient;
+package edu.cmu.cs.gabriel.client;
 
 import android.util.Log;
 
 import com.tinder.scarlet.Stream.Observer;
-import edu.cmu.cs.gabrielclient.Protos.ToClient;
-import edu.cmu.cs.gabrielclient.Protos.ResultWrapper;
+import edu.cmu.cs.gabriel.protocol.Protos.ToClient;
+import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 
 public abstract class ResultObserver implements Observer<ToClient>  {
     private String TAG = "ResultObserver";
@@ -16,8 +16,8 @@ public abstract class ResultObserver implements Observer<ToClient>  {
     @Override
     public void onNext(ToClient toClient) {
         if (toClient.hasResultWrapper()) {
-            Protos.ResultWrapper resultWrapper = toClient.getResultWrapper();
-            if (resultWrapper.getStatus() == Protos.ResultWrapper.Status.SUCCESS) {
+            ResultWrapper resultWrapper = toClient.getResultWrapper();
+            if (resultWrapper.getStatus() == ResultWrapper.Status.SUCCESS) {
                 this.handleResults(resultWrapper);
             } else {
                 Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());

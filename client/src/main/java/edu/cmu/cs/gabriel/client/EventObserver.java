@@ -1,4 +1,4 @@
-package edu.cmu.cs.gabrielclient;
+package edu.cmu.cs.gabriel.client;
 
 import android.util.Log;
 

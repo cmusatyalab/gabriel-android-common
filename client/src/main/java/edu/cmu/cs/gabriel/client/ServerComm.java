@@ -1,4 +1,4 @@
-package edu.cmu.cs.gabrielclient;
+package edu.cmu.cs.gabriel.client;
 
 import android.app.Application;
 import android.util.Log;
@@ -11,8 +11,8 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle;
 import com.tinder.scarlet.messageadapter.protobuf.ProtobufMessageAdapter;
 import com.tinder.scarlet.websocket.okhttp.OkHttpClientUtils;
 
-import edu.cmu.cs.gabrielclient.Protos.ResultWrapper;
-import edu.cmu.cs.gabrielclient.Protos.FromClient;
+import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
+import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 import okhttp3.OkHttpClient;
 
 public abstract class ServerComm {
