@@ -4,16 +4,12 @@ import android.app.Application;
 import android.util.Log;
 
 import com.tinder.scarlet.Lifecycle;
-import com.tinder.scarlet.Scarlet;
 import com.tinder.scarlet.ShutdownReason;
 import com.tinder.scarlet.lifecycle.LifecycleRegistry;
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle;
-import com.tinder.scarlet.messageadapter.protobuf.ProtobufMessageAdapter;
-import com.tinder.scarlet.websocket.okhttp.OkHttpClientUtils;
 
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
-import okhttp3.OkHttpClient;
 
 public abstract class ServerComm {
     private static String TAG = "ServerComm";
@@ -22,29 +18,22 @@ public abstract class ServerComm {
     private LifecycleRegistry lifecycleRegistry;
     private long frameID;
     private boolean connected;
-    private Object tokenLock;
+    private final Object tokenLock;
     private int numTokens;
 
     protected abstract void handleResults(ResultWrapper resultWrapper);
     protected abstract void handleDisconnect();
 
     public ServerComm(String serverIP, int port, Application application) {
-        String url = "ws://" + serverIP + ":" + port;
-        frameID = 0;
+        this(SocketWrapper.generateStandard(serverIP, port, application));
+    }
+
+    public ServerComm(SocketWrapper socketWrapper) {
+        this.webSocketInterface = socketWrapper.getWebSocketInterface();
+        this.lifecycleRegistry = socketWrapper.getLifecycleRegistry();
+
+        this.frameID = 0;
         this.connected = false;
-
-        OkHttpClient okClient = new OkHttpClient();
-
-        Lifecycle androidLifecycle = AndroidLifecycle.ofApplicationForeground(application);
-        this.lifecycleRegistry = new LifecycleRegistry(0L);
-        this.lifecycleRegistry.onNext(Lifecycle.State.Started.INSTANCE);
-
-        webSocketInterface = new Scarlet.Builder()
-                .webSocketFactory(OkHttpClientUtils.newWebSocketFactory(okClient, url))
-                .addMessageAdapterFactory(new ProtobufMessageAdapter.Factory())
-                .lifecycle(androidLifecycle.combineWith(this.lifecycleRegistry))
-                .build().create(GabrielSocket.class);
-
         this.tokenLock = new Object();
         this.numTokens = 0;
 
@@ -69,6 +58,7 @@ public abstract class ServerComm {
                 ServerComm.this.returnToken();
             }
         });
+
         webSocketInterface.observeWebSocketEvent().start(new EventObserver() {
             @Override
             protected void onConnect() {
@@ -166,8 +156,8 @@ public abstract class ServerComm {
      * Then add the current frame ID to fromClientBuilder. Then build
      * fromClientBuilder and send the resulting FromClient.
      *
-     * @param fromClientBuilder
-     * @return Return false if we ran into an error.
+     * @param fromClientBuilder Item to send
+     * @return False if we ran into an error.
      */
     public boolean sendBlocking(FromClient.Builder fromClientBuilder) {
         boolean gotToken = getToken();
