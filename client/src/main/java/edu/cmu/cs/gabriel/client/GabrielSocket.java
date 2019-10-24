@@ -5,15 +5,12 @@ import com.tinder.scarlet.WebSocket.Event;
 import com.tinder.scarlet.ws.Receive;
 import com.tinder.scarlet.ws.Send;
 
-import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
-import edu.cmu.cs.gabriel.protocol.Protos.ToClient;
-
 interface GabrielSocket {
     @Send
-    void Send(FromClient fromClient);
+    void send(byte[] rawFromClient);
 
     @Receive
-    Stream<ToClient> Receive();
+    Stream<byte[]> receive();
 
     @Receive
     Stream<Event> observeWebSocketEvent();

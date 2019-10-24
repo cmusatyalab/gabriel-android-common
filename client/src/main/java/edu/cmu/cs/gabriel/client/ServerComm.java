@@ -6,7 +6,6 @@ import android.util.Log;
 import com.tinder.scarlet.Lifecycle;
 import com.tinder.scarlet.ShutdownReason;
 import com.tinder.scarlet.lifecycle.LifecycleRegistry;
-import com.tinder.scarlet.lifecycle.android.AndroidLifecycle;
 
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
@@ -18,8 +17,6 @@ public abstract class ServerComm {
     private LifecycleRegistry lifecycleRegistry;
     private long frameID;
     private boolean connected;
-    private final Object tokenLock;
-    private int numTokens;
 
     protected abstract void handleResults(ResultWrapper resultWrapper);
     protected abstract void handleDisconnect();
@@ -34,8 +31,6 @@ public abstract class ServerComm {
 
         this.frameID = 0;
         this.connected = false;
-        this.tokenLock = new Object();
-        this.numTokens = 0;
 
         webSocketInterface.Receive().start(new ResultObserver() {
             @Override
@@ -43,15 +38,6 @@ public abstract class ServerComm {
                 ServerComm.this.handleResults(resultWrapper);
             }
 
-            @Override
-            protected void updateNumTokens(int numTokens) {
-                synchronized (ServerComm.this.tokenLock) {
-                    ServerComm.this.numTokens = numTokens;
-                    ServerComm.this.tokenLock.notify();
-                }
-
-                Log.i(TAG, "numTokens is now " + numTokens);
-            }
 
             @Override
             protected void returnToken() {
@@ -93,52 +79,11 @@ public abstract class ServerComm {
         Log.d(TAG, "numTokens is now " + this.numTokens);
     }
 
-    /** Take token if one is available. Otherwise return False. */
-    private boolean getTokenNoWait() {
-        boolean gotToken;
-        synchronized (this.tokenLock) {
-            gotToken = numTokens > 0;
-            if (gotToken) {
-                numTokens--;
-            }
-        }
 
-        return gotToken;
-    }
 
-    /** Wait until there is a token available. Then take it. */
-    private boolean getToken() {
-        boolean tokenAvailable;
-        synchronized (this.tokenLock) {
-            try {
-                while (this.numTokens < 1) {
-                    if (!this.connected) {
-                        Log.i(TAG, "Not connected. Will not wait for token");
-                        return false;
-                    }
 
-                    Log.d(TAG, "Too few tokens. Waiting for more.");
-                    this.tokenLock.wait();
-                }
-                tokenAvailable = true;
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Interrupted Exception while waiting for lock", e);
-                tokenAvailable = false;
-            }
 
-            if (tokenAvailable) {
-                this.numTokens--;
-            }
-        }
-        return tokenAvailable;
-    }
 
-    private void returnToken() {
-        synchronized (ServerComm.this.tokenLock) {
-            ServerComm.this.numTokens++;
-            ServerComm.this.tokenLock.notify();
-        }
-    }
 
     /** Send if there is at least one token available. Returns false if there were no tokens. */
     private boolean sendNoWait(FromClient.Builder fromClientBuilder) {

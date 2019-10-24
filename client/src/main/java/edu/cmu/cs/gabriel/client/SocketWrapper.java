@@ -4,57 +4,42 @@ import android.app.Application;
 
 import com.tinder.scarlet.Lifecycle;
 import com.tinder.scarlet.Scarlet;
+import com.tinder.scarlet.ShutdownReason;
 import com.tinder.scarlet.lifecycle.LifecycleRegistry;
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle;
-import com.tinder.scarlet.messageadapter.protobuf.ProtobufMessageAdapter;
 import com.tinder.scarlet.websocket.okhttp.OkHttpClientUtils;
 
+import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 import okhttp3.OkHttpClient;
 
 public class SocketWrapper {
     private LifecycleRegistry lifecycleRegistry;
     private GabrielSocket webSocketInterface;
 
-    public static GabrielSocket createSocket(
-            String serverIP, int port, Application application, Lifecycle lifecycle) {
+    public SocketWrapper(
+            String serverIP, int port, Application application, ResultObserver resultObserver,
+            EventObserver eventObserver) {
+        this.lifecycleRegistry = new LifecycleRegistry(0L);
+        this.lifecycleRegistry.onNext(Lifecycle.State.Started.INSTANCE);
+
+        Lifecycle androidLifecycle = AndroidLifecycle.ofApplicationForeground(application);
+
         String url = "ws://" + serverIP + ":" + port;
         OkHttpClient okClient = new OkHttpClient();
 
-        return new Scarlet.Builder()
+        this.webSocketInterface = (new Scarlet.Builder())
                 .webSocketFactory(OkHttpClientUtils.newWebSocketFactory(okClient, url))
-                .addMessageAdapterFactory(new ProtobufMessageAdapter.Factory())
-                .lifecycle(lifecycle)
+                .lifecycle(androidLifecycle.combineWith(lifecycleRegistry))
                 .build().create(GabrielSocket.class);
+        this.webSocketInterface.receive().start(resultObserver);
+        this.webSocketInterface.observeWebSocketEvent().start(eventObserver);
     }
 
-    public static LifecycleRegistry createLifecycleRegistry() {
-        LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(0L);
-        lifecycleRegistry.onNext(Lifecycle.State.Started.INSTANCE);
-        return lifecycleRegistry;
+    public void send(FromClient fromClient) {
+        this.webSocketInterface.send(fromClient.toByteArray());
     }
 
-    public static SocketWrapper generateStandard(
-            String serverIP, int port, Application application) {
-        LifecycleRegistry lifecycleRegistry = SocketWrapper.createLifecycleRegistry();
-
-        Lifecycle androidLifecycle = AndroidLifecycle.ofApplicationForeground(application);
-        Lifecycle socketLifecycle = androidLifecycle.combineWith(lifecycleRegistry);
-        GabrielSocket webSocketInterface = SocketWrapper.createSocket(
-                serverIP, port, application, socketLifecycle);
-
-        return new SocketWrapper(lifecycleRegistry, webSocketInterface);
-    }
-
-    public SocketWrapper(LifecycleRegistry lifecycleRegistry, GabrielSocket webSocketInterface) {
-        this.lifecycleRegistry = lifecycleRegistry;
-        this.webSocketInterface = webSocketInterface;
-    }
-
-    public GabrielSocket getWebSocketInterface() {
-        return webSocketInterface;
-    }
-
-    public LifecycleRegistry getLifecycleRegistry() {
-        return lifecycleRegistry;
+    public void stop() {
+        lifecycleRegistry.onNext(new Lifecycle.State.Stopped.WithReason(ShutdownReason.GRACEFUL));
     }
 }

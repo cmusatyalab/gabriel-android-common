@@ -14,13 +14,13 @@ public class TimingSocket implements GabrielSocket {
     private GabrielSocket gabrielSocket;
     private LongSparseArray<Long> sendTimestamps;
 
-    public TimingSocket(String serverIP, int port, Application application, Lifecycle lifecycle) {
-        this.gabrielSocket = SocketWrapper.createSocket(serverIP, port, application, lifecycle);
+    public TimingSocket(String serverIP, int port, Lifecycle lifecycle) {
+        this.gabrielSocket = SocketWrapper.createSocket(serverIP, port, lifecycle);
         this.sendTimestamps = new LongSparseArray<>();
     }
 
     @Override
-    public void Send(FromClient fromClient) {
+    public void Send(byte[] rawFromClient) {
         // TODO: change to java.time.Instant once we can stop supporting Google Glass Explorer
         //       Edition
         long timestamp = System.currentTimeMillis();

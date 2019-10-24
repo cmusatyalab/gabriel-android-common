@@ -26,9 +26,8 @@ android {
 dependencies {
     api 'com.tinder.scarlet:scarlet:0.1.9'
     api 'com.tinder.scarlet:websocket-okhttp:0.1.9'
-    api 'com.tinder.scarlet:message-adapter-protobuf:0.1.9'
     api 'com.tinder.scarlet:lifecycle-android:0.1.9'
-    api 'edu.cmu.cs.gabriel:protocol:0.1.1'
+    api 'edu.cmu.cs.gabriel:protocol:0.1.2-SNAPSHOT'
 }
 
 apply plugin: 'com.vanniktech.maven.publish'

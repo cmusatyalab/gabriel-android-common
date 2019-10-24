@@ -8,8 +8,12 @@ import com.tinder.scarlet.WebSocket.Event;
 public abstract class EventObserver implements Observer<Event> {
     private static String TAG = "EventObserver";
 
-    protected abstract void onConnect();
-    protected abstract void onDisconnect();
+    private TokenManager tokenManager;
+    p
+
+    public EventObserver(TokenManager tokenManager) {
+        this.tokenManager = tokenManager;
+    }
 
     @Override
     public void onNext(Event receivedUpdate) {
@@ -17,9 +21,9 @@ public abstract class EventObserver implements Observer<Event> {
             Log.i(TAG, receivedUpdate.toString());
 
             if (receivedUpdate instanceof Event.OnConnectionOpened) {
-                this.onConnect();
+                this.tokenManager.start();
             } else if (receivedUpdate instanceof Event.OnConnectionFailed) {
-                this.onDisconnect();
+                this.tokenManager.stop();
             }
 
             // We do not check for Event.OnConnectionClosed because this is what gets sent when the
