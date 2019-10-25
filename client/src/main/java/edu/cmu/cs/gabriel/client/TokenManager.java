@@ -81,4 +81,8 @@ public class TokenManager {
             this.tokenLock.notify();
         }
     }
+
+    public boolean isRunning() {
+        return this.running;
+    }
 }

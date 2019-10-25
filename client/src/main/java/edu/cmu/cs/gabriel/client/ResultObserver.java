@@ -6,9 +6,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.tinder.scarlet.Stream.Observer;
 import edu.cmu.cs.gabriel.protocol.Protos.ToClient;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
-import io.reactivex.functions.Consumer;
 
-public abstract class ResultObserver implements Observer<byte[]>  {
+public class ResultObserver implements Observer<byte[]>  {
     private String TAG = "ResultObserver";
 
     private TokenManager tokenManager;

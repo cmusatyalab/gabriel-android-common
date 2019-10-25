@@ -5,14 +5,15 @@ import android.util.Log;
 import com.tinder.scarlet.Stream.Observer;
 import com.tinder.scarlet.WebSocket.Event;
 
-public abstract class EventObserver implements Observer<Event> {
+public class EventObserver implements Observer<Event> {
     private static String TAG = "EventObserver";
 
     private TokenManager tokenManager;
-    p
+    private Runnable onDisconnect;
 
-    public EventObserver(TokenManager tokenManager) {
+    public EventObserver(TokenManager tokenManager, Runnable onDisconnect) {
         this.tokenManager = tokenManager;
+        this.onDisconnect = onDisconnect;
     }
 
     @Override
@@ -23,6 +24,7 @@ public abstract class EventObserver implements Observer<Event> {
             if (receivedUpdate instanceof Event.OnConnectionOpened) {
                 this.tokenManager.start();
             } else if (receivedUpdate instanceof Event.OnConnectionFailed) {
+                this.onDisconnect.run();
                 this.tokenManager.stop();
             }
 
