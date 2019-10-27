@@ -1,9 +1,13 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.comm;
 
 import android.app.Application;
 import android.util.Log;
 import android.util.LongSparseArray;
 
+import edu.cmu.cs.gabriel.client.observer.EventObserver;
+import edu.cmu.cs.gabriel.client.observer.ResultObserver;
+import edu.cmu.cs.gabriel.client.socket.TimingSocketWrapper;
+import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 
 public class TimingServerComm extends ServerComm {
@@ -44,12 +48,14 @@ public class TimingServerComm extends ServerComm {
 
                 if (TimingServerComm.this.count % output_freq == 0) {
                     long start_time = TimingServerComm.this.start_time;
-                    double overall_fps = TimingServerComm.this.count / (timestamp - start_time);
+                    double overall_fps = (double)TimingServerComm.this.count /
+                            ((timestamp - start_time) / 1000.0);
                     Log.i(TAG, "Overall FPS: " + overall_fps);
 
                     long interval_count = TimingServerComm.this.interval_count;
                     long interval_start_time = TimingServerComm.this.interval_start_time;
-                    double interval_fps = interval_count / (timestamp - interval_start_time);
+                    double interval_fps = (double)interval_count /
+                            ((timestamp - interval_start_time) / 1000.0);
                     Log.i(TAG, "Interval FPS: " + interval_fps);
 
                     TimingServerComm.this.interval_count = 0;
@@ -68,7 +74,7 @@ public class TimingServerComm extends ServerComm {
          this.socketWrapper = this.timingSocketWrapper;
 
         this.count = 0;
-        this.interval_count = this.count;
+        this.interval_count = 0;
 
         // TODO: change to java.time.Instant once we can stop supporting Google Glass Explorer
         //       Edition
@@ -77,7 +83,7 @@ public class TimingServerComm extends ServerComm {
         this.interval_start_time = this.start_time;
     }
 
-    public void compute_avg_rtt() {
+    public void logAvgRtt() {
         long count = 0;
         long total_rtt = 0;
 
@@ -95,10 +101,10 @@ public class TimingServerComm extends ServerComm {
              }
         }
 
-        Log.i(TAG, "Average RTT: " + (total_rtt / count));
+        Log.i(TAG, "Average RTT: " + ((double)total_rtt / count) + " ms");
     }
 
-    public void clear_timestamps() {
+    public void clearTimestamps() {
         this.timingSocketWrapper.clearSentTimestamps();
         this.receivedTimestamps.clear();
     }

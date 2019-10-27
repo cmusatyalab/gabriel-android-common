@@ -1,9 +1,11 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.observer;
 
 import android.util.Log;
 
 import com.tinder.scarlet.Stream.Observer;
 import com.tinder.scarlet.WebSocket.Event;
+
+import edu.cmu.cs.gabriel.client.token.TokenManager;
 
 public class EventObserver implements Observer<Event> {
     private static String TAG = "EventObserver";

@@ -1,8 +1,10 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.socket;
 
 import android.app.Application;
 import android.util.LongSparseArray;
 
+import edu.cmu.cs.gabriel.client.observer.EventObserver;
+import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
 public class TimingSocketWrapper extends SocketWrapper {

@@ -1,4 +1,4 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.socket;
 
 import android.app.Application;
 
@@ -9,6 +9,8 @@ import com.tinder.scarlet.lifecycle.LifecycleRegistry;
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle;
 import com.tinder.scarlet.websocket.okhttp.OkHttpClientUtils;
 
+import edu.cmu.cs.gabriel.client.observer.EventObserver;
+import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 import okhttp3.OkHttpClient;
 

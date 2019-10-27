@@ -1,4 +1,4 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.socket;
 
 import com.tinder.scarlet.Stream;
 import com.tinder.scarlet.WebSocket.Event;

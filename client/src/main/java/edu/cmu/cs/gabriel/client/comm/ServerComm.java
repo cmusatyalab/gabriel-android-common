@@ -1,7 +1,11 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.comm;
 
 import android.app.Application;
 
+import edu.cmu.cs.gabriel.client.observer.EventObserver;
+import edu.cmu.cs.gabriel.client.observer.ResultObserver;
+import edu.cmu.cs.gabriel.client.socket.SocketWrapper;
+import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 
 public class ServerComm extends ServerCommCore{

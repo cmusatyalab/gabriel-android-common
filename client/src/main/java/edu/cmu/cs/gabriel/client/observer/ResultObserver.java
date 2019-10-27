@@ -1,9 +1,12 @@
-package edu.cmu.cs.gabriel.client;
+package edu.cmu.cs.gabriel.client.observer;
 
 import android.util.Log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.tinder.scarlet.Stream.Observer;
+
+import edu.cmu.cs.gabriel.client.function.Consumer;
+import edu.cmu.cs.gabriel.client.token.TokenManager;
 import edu.cmu.cs.gabriel.protocol.Protos.ToClient;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 
