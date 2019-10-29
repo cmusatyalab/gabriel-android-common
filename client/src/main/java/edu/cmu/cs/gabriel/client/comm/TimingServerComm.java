@@ -73,7 +73,7 @@ public class TimingServerComm extends ServerComm {
         this.count = 0;
         this.intervalCount = 0;
 
-        // TODO: change to java.time.Instant once we can stop supporting Google Glass Explorer
+        // TODO: Change to java.time.Instant once we can stop supporting Google Glass Explorer
         //       Edition
         this.startTime = System.currentTimeMillis();
 
