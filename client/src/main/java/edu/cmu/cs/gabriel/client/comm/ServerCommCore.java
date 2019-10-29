@@ -1,12 +1,8 @@
 package edu.cmu.cs.gabriel.client.comm;
 
-import android.app.Application;
-
 import edu.cmu.cs.gabriel.client.socket.SocketWrapper;
 import edu.cmu.cs.gabriel.client.token.TokenManager;
-import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.client.function.Supplier;
-import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
 public abstract class ServerCommCore {
@@ -16,9 +12,8 @@ public abstract class ServerCommCore {
     SocketWrapper socketWrapper;
     private long frameID;
 
-    public ServerCommCore(Consumer<ResultWrapper> consumer, Runnable onDisconnect, String serverIP,
-                          int port, Application application) {
-        this.tokenManager = new TokenManager();
+    public ServerCommCore(int tokenLimit) {
+        this.tokenManager = new TokenManager(tokenLimit);
         this.frameID = 0;
     }
 

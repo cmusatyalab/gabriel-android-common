@@ -17,19 +17,16 @@ public class TimingServerComm extends ServerCommCore {
     private LongSparseArray<Long> receivedTimestamps;
     private TimingSocketWrapper timingSocketWrapper;
     private long count;
-    private long interval_count;
-    private long start_time;
-    private long interval_start_time;
+    private long intervalCount;
+    private long startTime;
+    private long intervalStartTime;
 
-    public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
-                            String serverIP, int port, Application application) {
-        this(consumer, onDisconnect, serverIP, port, application, DEFAULT_OUTPUT_FREQ);
-    }
-
+    // TODO: Replace these constructors with a builder to allow setting tokenLimit without setting
+    //       outputFreq
     public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
                             String serverIP, int port, Application application,
-                            final int output_freq) {
-        super(consumer, onDisconnect, serverIP, port, application);
+                            int tokenLimit, final int outputFreq) {
+        super(tokenLimit);
 
         this.receivedTimestamps = new LongSparseArray<>();
 
@@ -38,31 +35,31 @@ public class TimingServerComm extends ServerCommCore {
             public void accept(ResultWrapper resultWrapper) {
                 consumer.accept(resultWrapper);
 
-                // TODO: change to java.time.Instant once we can stop supporting Google Glass
+                // TODO: Change to java.time.Instant once we can stop supporting Google Glass
                 //       Explorer Edition
                 long timestamp = System.currentTimeMillis();
 
                 TimingServerComm.this.receivedTimestamps.put(resultWrapper.getFrameId(), timestamp);
                 TimingServerComm.this.count++;
-                TimingServerComm.this.interval_count++;
+                TimingServerComm.this.intervalCount++;
 
-                if (output_freq > 0 && TimingServerComm.this.count % output_freq == 0) {
-                    long start_time = TimingServerComm.this.start_time;
-                    double overall_fps = (double)TimingServerComm.this.count /
-                            ((timestamp - start_time) / 1000.0);
-                    Log.i(TAG, "Overall FPS: " + overall_fps);
+                if (outputFreq > 0 && TimingServerComm.this.count % outputFreq == 0) {
+                    long startTime = TimingServerComm.this.startTime;
+                    double overallFps = (double)TimingServerComm.this.count /
+                            ((timestamp - startTime) / 1000.0);
+                    Log.i(TAG, "Overall FPS: " + overallFps);
 
-                    long interval_count = TimingServerComm.this.interval_count;
-                    long interval_start_time = TimingServerComm.this.interval_start_time;
-                    double interval_fps = (double)interval_count /
-                            ((timestamp - interval_start_time) / 1000.0);
-                    Log.i(TAG, "Interval FPS: " + interval_fps);
+                    long intervalCount = TimingServerComm.this.intervalCount;
+                    long intervalStartTime = TimingServerComm.this.intervalStartTime;
+                    double intervalFps = (double)intervalCount /
+                            ((timestamp - intervalStartTime) / 1000.0);
+                    Log.i(TAG, "Interval FPS: " + intervalFps);
 
-                    TimingServerComm.this.interval_count = 0;
+                    TimingServerComm.this.intervalCount = 0;
 
                     // TODO: change to java.time.Instant once we can stop supporting Google Glass
                     //       Explorer Edition
-                    TimingServerComm.this.interval_start_time = System.currentTimeMillis();
+                    TimingServerComm.this.intervalStartTime = System.currentTimeMillis();
                 }
             }
         };
@@ -71,21 +68,33 @@ public class TimingServerComm extends ServerCommCore {
         EventObserver eventObserver = new EventObserver(this.tokenManager, onDisconnect);
         this.timingSocketWrapper = new TimingSocketWrapper(
                 serverIP, port, application, resultObserver, eventObserver);
-         this.socketWrapper = this.timingSocketWrapper;
+        this.socketWrapper = this.timingSocketWrapper;
 
         this.count = 0;
-        this.interval_count = 0;
+        this.intervalCount = 0;
 
-        // TODO: change to java.time.Instant once we can stop supporting Google Glass Explorer
+        // TODO: Change to java.time.Instant once we can stop supporting Google Glass Explorer
         //       Edition
-        this.start_time = System.currentTimeMillis();
+        this.startTime = System.currentTimeMillis();
 
-        this.interval_start_time = this.start_time;
+        this.intervalStartTime = this.startTime;
+    }
+
+    public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
+                            String serverIP, int port, Application application,
+                            int tokenLimit) {
+        this(consumer, onDisconnect, serverIP, port, application, tokenLimit,
+                TimingServerComm.DEFAULT_OUTPUT_FREQ);
+    }
+
+    public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
+                            String serverIP, int port, Application application) {
+        this(consumer, onDisconnect, serverIP, port, application, Integer.MAX_VALUE);
     }
 
     public void logAvgRtt() {
         long count = 0;
-        long total_rtt = 0;
+        long totalRtt = 0;
 
         LongSparseArray<Long> sentTimestamps = this.timingSocketWrapper.getSentTimestamps();
         for (int i = 0; i < sentTimestamps.size(); i++) {
@@ -97,11 +106,11 @@ public class TimingServerComm extends ServerCommCore {
                 Log.e(TAG, "Frame with ID " + frameId + " never received");
              } else {
                  count++;
-                 total_rtt += (receivedTimestamp - sentTimestamp);
+                 totalRtt += (receivedTimestamp - sentTimestamp);
              }
         }
 
-        Log.i(TAG, "Average RTT: " + ((double)total_rtt / count) + " ms");
+        Log.i(TAG, "Average RTT: " + ((double)totalRtt / count) + " ms");
     }
 
     public void clearTimestamps() {
