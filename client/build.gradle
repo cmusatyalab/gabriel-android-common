@@ -31,9 +31,10 @@ dependencies {
     // TODO: Switch to api once MobilEdgeX supports protobuf-javalite.
     // We need this to be compileOnly so openrtist can use edu.cmu.cs.gabriel:protocol-old-protobuf
     // with MobilEdgeX
-    compileOnly 'edu.cmu.cs.gabriel:protocol:0.1.8-SNAPSHOT'
+    compileOnly 'edu.cmu.cs.gabriel:protocol:0.1.4'
 
-    // TODO: Remove these once MobilEdgeX supports protobuf-javalite and gabriel.protocol implements this
+    // TODO: Remove these once MobilEdgeX supports protobuf-javalite and gabriel.protocol implements
+    //       this
     compileOnly 'com.google.protobuf:protobuf-lite:3.0.1'
     compileOnly 'com.google.protobuf:protobuf-java:3.7.1'
 }

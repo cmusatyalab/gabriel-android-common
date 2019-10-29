@@ -1,8 +1,8 @@
 package edu.cmu.cs.gabriel.client.comm;
 
+import edu.cmu.cs.gabriel.client.function.Supplier;
 import edu.cmu.cs.gabriel.client.socket.SocketWrapper;
 import edu.cmu.cs.gabriel.client.token.TokenManager;
-import edu.cmu.cs.gabriel.client.function.Supplier;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
 public abstract class ServerCommCore {

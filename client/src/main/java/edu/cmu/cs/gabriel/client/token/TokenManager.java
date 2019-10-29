@@ -18,7 +18,7 @@ public class TokenManager {
     }
 
     public void setNumTokens (int numTokens) {
-        numTokens = Math.max(numTokens, this.tokenLimit);
+        numTokens = Math.min(numTokens, this.tokenLimit);
 
         synchronized (this.tokenLock) {
             this.numTokens = numTokens;
