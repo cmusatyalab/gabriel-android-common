@@ -10,7 +10,7 @@ import edu.cmu.cs.gabriel.client.socket.TimingSocketWrapper;
 import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 
-public class TimingServerComm extends ServerComm {
+public class TimingServerComm extends ServerCommCore {
     private final static String TAG = "TimingServerComm";
     private final static int DEFAULT_OUTPUT_FREQ = 10;
 
@@ -46,7 +46,7 @@ public class TimingServerComm extends ServerComm {
                 TimingServerComm.this.count++;
                 TimingServerComm.this.interval_count++;
 
-                if (TimingServerComm.this.count % output_freq == 0) {
+                if (output_freq > 0 && TimingServerComm.this.count % output_freq == 0) {
                     long start_time = TimingServerComm.this.start_time;
                     double overall_fps = (double)TimingServerComm.this.count /
                             ((timestamp - start_time) / 1000.0);
