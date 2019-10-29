@@ -8,14 +8,18 @@ public class TokenManager {
     private volatile int numTokens;
     private final Object tokenLock;
     private boolean running;
+    private int tokenLimit;
 
-    public TokenManager() {
+    public TokenManager(int tokenLimit) {
         this.tokenLock = new Object();
         this.numTokens = 0;
         this.running = false;
+        this.tokenLimit = tokenLimit;
     }
 
     public void setNumTokens (int numTokens) {
+        numTokens = Math.max(numTokens, this.tokenLimit);
+
         synchronized (this.tokenLock) {
             this.numTokens = numTokens;
             this.tokenLock.notify();
