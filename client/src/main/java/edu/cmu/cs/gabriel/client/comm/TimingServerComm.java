@@ -21,8 +21,8 @@ public class TimingServerComm extends ServerComm {
     private long startTime;
     private long intervalStartTime;
 
-    // TODO: Replace these constructors with a builder to allow setting token_limit without setting
-    //       output_freq
+    // TODO: Replace these constructors with a builder to allow setting tokenLimit without setting
+    //       outputFreq
     public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
                             String serverIP, int port, Application application,
                             int tokenLimit, final int outputFreq) {
@@ -44,16 +44,16 @@ public class TimingServerComm extends ServerComm {
                 TimingServerComm.this.intervalCount++;
 
                 if (TimingServerComm.this.count % outputFreq == 0) {
-                    long start_time = TimingServerComm.this.startTime;
-                    double overall_fps = (double) TimingServerComm.this.count /
-                            ((timestamp - start_time) / 1000.0);
-                    Log.i(TAG, "Overall FPS: " + overall_fps);
+                    long startTime = TimingServerComm.this.startTime;
+                    double overallFps = (double)TimingServerComm.this.count /
+                            ((timestamp - startTime) / 1000.0);
+                    Log.i(TAG, "Overall FPS: " + overallFps);
 
-                    long interval_count = TimingServerComm.this.intervalCount;
-                    long interval_start_time = TimingServerComm.this.intervalStartTime;
-                    double interval_fps = (double) interval_count /
-                            ((timestamp - interval_start_time) / 1000.0);
-                    Log.i(TAG, "Interval FPS: " + interval_fps);
+                    long intervalCount = TimingServerComm.this.intervalCount;
+                    long intervalStartTime = TimingServerComm.this.intervalStartTime;
+                    double intervalFps = (double)intervalCount /
+                            ((timestamp - intervalStartTime) / 1000.0);
+                    Log.i(TAG, "Interval FPS: " + intervalFps);
 
                     TimingServerComm.this.intervalCount = 0;
 
