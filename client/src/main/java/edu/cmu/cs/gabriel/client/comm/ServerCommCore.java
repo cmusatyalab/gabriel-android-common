@@ -17,11 +17,7 @@ public abstract class ServerCommCore {
         this.frameID = 0;
     }
 
-    long getFrameID() {
-        return this.frameID;
-    }
-
-    void sendHelper(FromClient.Builder fromClientBuilder) {
+    private void sendHelper(FromClient.Builder fromClientBuilder) {
         fromClientBuilder.setFrameId(this.frameID);
         FromClient fromClient = fromClientBuilder.build();
         this.socketWrapper.send(fromClient);
