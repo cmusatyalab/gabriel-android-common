@@ -43,7 +43,7 @@ public class TimingServerComm extends ServerCommCore {
                 TimingServerComm.this.count++;
                 TimingServerComm.this.intervalCount++;
 
-                if (outputFreq > 0 && TimingServerComm.this.count % outputFreq == 0) {
+                if (outputFreq > 0 && (TimingServerComm.this.count % outputFreq == 0)) {
                     long startTime = TimingServerComm.this.startTime;
                     double overallFps = (double)TimingServerComm.this.count /
                             ((timestamp - startTime) / 1000.0);
