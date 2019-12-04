@@ -1,6 +1,8 @@
 package edu.cmu.cs.gabriel.client.socket;
 
 import android.app.Application;
+import android.os.Build;
+import android.security.NetworkSecurityPolicy;
 
 import com.tinder.scarlet.Lifecycle;
 import com.tinder.scarlet.Scarlet;
@@ -21,6 +23,11 @@ public class SocketWrapper {
     public SocketWrapper(
             String serverIP, int port, Application application, ResultObserver resultObserver,
             EventObserver eventObserver) {
+        if (Build.VERSION.SDK_INT >= 23 &&
+                !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted()) {
+            throw new RuntimeException("Manifest file does not allow cleartext connections.");
+        }
+
         this.lifecycleRegistry = new LifecycleRegistry(0L);
         this.lifecycleRegistry.onNext(Lifecycle.State.Started.INSTANCE);
 
