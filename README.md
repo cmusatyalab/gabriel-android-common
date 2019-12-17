@@ -1,6 +1,6 @@
 # gabriel-android-common
 
-Android Library for communicating with Gabriel Server
+Android Library for communicating with a [Gabriel Server](https://github.com/cmusatyalab/gabriel-server-common).
 
 ## Usage
 
