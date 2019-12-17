@@ -25,7 +25,8 @@ public class SocketWrapper {
             EventObserver eventObserver) {
         if (Build.VERSION.SDK_INT >= 23 &&
                 !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted()) {
-            throw new RuntimeException("Manifest file does not allow cleartext connections.");
+            throw new RuntimeException(
+                    "Manifest file or security config does not allow cleartext connections.");
         }
 
         this.lifecycleRegistry = new LifecycleRegistry(0L);
