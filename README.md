@@ -12,9 +12,9 @@ Config, you must sepcify `android:usesCleartextTraffic="true"` in the [applicati
 If your app has an Android Network Security Config, you must allow cleartext traffic using this
 config. See [here](https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic) for more details.
 
-Extend the `edu.cmu.cs.gabriel.client.comm.ServerComm` class.
+Create a `edu.cmu.cs.gabriel.client.comm.ServerComm` instance.
 Send messages to the server using either the `sendNoWait`, `sendBlocking`, or 
-`sendSupplier` methods.
+`sendSupplier` methods. See [here](https://github.com/cmusatyalab/gabriel-instruction/blob/master/android-client/app/src/main/java/edu/cmu/cs/gabrielclient/network/InstructionComm.java#L102) for an example.
 
 ## Publishing Changes to Maven Central
 
