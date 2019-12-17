@@ -7,6 +7,8 @@ Android Library for communicating with Gabriel Server
 Add `implementation 'edu.cmu.cs.gabriel:client:0.1.5'` to your app's dependencies. 
 Your project must include either the `jcenter()` or `mavenCentral()` repository. 
 
+You must sepcify `android:usesCleartextTraffic="true"` in the [application element](https://developer.android.com/guide/topics/manifest/application-element) of your Manifest file. 
+
 Extend the `edu.cmu.cs.gabriel.client.comm.ServerComm` class.
 Send messages to the server using either the `sendNoWait`, `sendBlocking`, or 
 `sendSupplier` methods.
