@@ -23,8 +23,10 @@ public class SocketWrapper {
     public SocketWrapper(
             String serverIP, int port, Application application, ResultObserver resultObserver,
             EventObserver eventObserver) {
-        if (Build.VERSION.SDK_INT >= 23 &&
-                !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted()) {
+        if ((Build.VERSION.SDK_INT > 23 &&
+                !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted(serverIP)) ||
+                (Build.VERSION.SDK_INT == 23 &&
+                        !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted())) {
             throw new RuntimeException(
                     "Manifest file or security config does not allow cleartext connections.");
         }
