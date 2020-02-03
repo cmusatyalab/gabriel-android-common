@@ -24,9 +24,9 @@ android {
 }
 
 dependencies {
-    implementation 'com.tinder.scarlet:scarlet:0.1.9'
-    implementation 'com.tinder.scarlet:websocket-okhttp:0.1.9'
-    implementation 'com.tinder.scarlet:lifecycle-android:0.1.9'
+    implementation 'com.tinder.scarlet:scarlet:0.1.10'
+    implementation 'com.tinder.scarlet:websocket-okhttp:0.1.10'
+    implementation 'com.tinder.scarlet:lifecycle-android:0.1.10'
 
     // TODO: Switch to api once MobilEdgeX supports protobuf-javalite.
     // We need this to be compileOnly so openrtist can use edu.cmu.cs.gabriel:protocol-old-protobuf
@@ -36,7 +36,7 @@ dependencies {
     // TODO: Remove these once MobilEdgeX supports protobuf-javalite and gabriel.protocol implements
     //       this
     compileOnly 'com.google.protobuf:protobuf-lite:3.0.1'
-    compileOnly 'com.google.protobuf:protobuf-java:3.7.1'
+    compileOnly 'com.google.protobuf:protobuf-java:3.11.3'
 }
 
 apply plugin: 'com.vanniktech.maven.publish'
