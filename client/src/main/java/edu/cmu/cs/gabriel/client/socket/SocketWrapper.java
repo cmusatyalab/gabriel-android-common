@@ -14,6 +14,7 @@ import com.tinder.scarlet.websocket.okhttp.OkHttpClientUtils;
 import edu.cmu.cs.gabriel.client.observer.EventObserver;
 import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 
 public class SocketWrapper {
@@ -21,26 +22,34 @@ public class SocketWrapper {
     private GabrielSocket webSocketInterface;
 
     public SocketWrapper(
-            String serverIP, int port, Application application, ResultObserver resultObserver,
+            String serverURL, Application application, ResultObserver resultObserver,
             EventObserver eventObserver) {
-        if ((Build.VERSION.SDK_INT > 23 &&
-                !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted(serverIP)) ||
+
+        // HttpUrl can't parse websocket URLs
+        serverURL = serverURL.replaceFirst("^ws://", "http://").replaceFirst("^wss://", "https://");
+        HttpUrl url = HttpUrl.parse(serverURL);
+
+        if (!url.isHttps()) {
+            if ((Build.VERSION.SDK_INT > 23 &&
+                    !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted(url.host())) ||
                 (Build.VERSION.SDK_INT == 23 &&
-                        !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted())) {
-            throw new RuntimeException(
-                    "Manifest file or security config does not allow cleartext connections.");
+                    !NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted())) {
+                throw new RuntimeException(
+                        "Manifest file or security config does not allow cleartext connections.");
+            }
         }
+
+        String wsURL = url.toString().replaceFirst("^http", "ws");
 
         this.lifecycleRegistry = new LifecycleRegistry(0L);
         this.lifecycleRegistry.onNext(Lifecycle.State.Started.INSTANCE);
 
         Lifecycle androidLifecycle = AndroidLifecycle.ofApplicationForeground(application);
 
-        String url = "ws://" + serverIP + ":" + port;
         OkHttpClient okClient = new OkHttpClient();
 
         this.webSocketInterface = (new Scarlet.Builder())
-                .webSocketFactory(OkHttpClientUtils.newWebSocketFactory(okClient, url))
+                .webSocketFactory(OkHttpClientUtils.newWebSocketFactory(okClient, wsURL))
                 .lifecycle(androidLifecycle.combineWith(lifecycleRegistry))
                 .build().create(GabrielSocket.class);
         this.webSocketInterface.receive().start(resultObserver);

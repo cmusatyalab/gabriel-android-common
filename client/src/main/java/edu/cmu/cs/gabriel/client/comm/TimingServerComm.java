@@ -24,7 +24,7 @@ public class TimingServerComm extends ServerCommCore {
     // TODO: Replace these constructors with a builder to allow setting tokenLimit without setting
     //       outputFreq
     public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
-                            String serverIP, int port, Application application,
+                            String serverURL, Application application,
                             int tokenLimit, final int outputFreq) {
         super(tokenLimit);
 
@@ -67,7 +67,7 @@ public class TimingServerComm extends ServerCommCore {
         ResultObserver resultObserver = new ResultObserver(this.tokenManager, timingConsumer);
         EventObserver eventObserver = new EventObserver(this.tokenManager, onDisconnect);
         this.timingSocketWrapper = new TimingSocketWrapper(
-                serverIP, port, application, resultObserver, eventObserver);
+                serverURL, application, resultObserver, eventObserver);
         this.socketWrapper = this.timingSocketWrapper;
 
         this.count = 0;
@@ -81,15 +81,15 @@ public class TimingServerComm extends ServerCommCore {
     }
 
     public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
-                            String serverIP, int port, Application application,
+                            String serverURL, Application application,
                             int tokenLimit) {
-        this(consumer, onDisconnect, serverIP, port, application, tokenLimit,
+        this(consumer, onDisconnect, serverURL, application, tokenLimit,
                 TimingServerComm.DEFAULT_OUTPUT_FREQ);
     }
 
     public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
-                            String serverIP, int port, Application application) {
-        this(consumer, onDisconnect, serverIP, port, application, Integer.MAX_VALUE);
+                            String serverURL, Application application) {
+        this(consumer, onDisconnect, serverURL, application, Integer.MAX_VALUE);
     }
 
     public void logAvgRtt() {

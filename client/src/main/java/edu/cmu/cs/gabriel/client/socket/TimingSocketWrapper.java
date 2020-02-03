@@ -10,9 +10,9 @@ import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 public class TimingSocketWrapper extends SocketWrapper {
     private LongSparseArray<Long> sentTimestamps;
 
-    public TimingSocketWrapper(String serverIP, int port, Application application,
+    public TimingSocketWrapper(String serverURL, Application application,
                                ResultObserver resultObserver, EventObserver eventObserver) {
-        super(serverIP, port, application, resultObserver, eventObserver);
+        super(serverURL, application, resultObserver, eventObserver);
 
         this.sentTimestamps = new LongSparseArray<>();
     }
