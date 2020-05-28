@@ -9,6 +9,8 @@ buildscript {
     dependencies {
         classpath 'com.vanniktech:gradle-maven-publish-plugin:0.8.0'
         classpath 'com.android.tools.build:gradle:3.5.3'
+        implementation group: 'org.influxdb', name: 'influxdb-java', version: '2.19'
+        compile "org.influxdb:influxdb-client-java:1.8.0"
     }
 }
 

@@ -3,7 +3,11 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 28
     buildToolsVersion "29.0.2"
-
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 
     defaultConfig {
         minSdkVersion 19
@@ -27,6 +31,10 @@ dependencies {
     implementation 'com.tinder.scarlet:scarlet:0.1.10'
     implementation 'com.tinder.scarlet:websocket-okhttp:0.1.10'
     implementation 'com.tinder.scarlet:lifecycle-android:0.1.10'
+//    implementation group: 'org.influxdb', name: 'influxdb-java', version: '2.19'
+
+    implementation project(":cliostore")
+
     // TODO: Switch to api once MobilEdgeX supports protobuf-javalite.
     // We need this to be compileOnly so openrtist can use edu.cmu.cs.gabriel:protocol-old-protobuf
     // with MobilEdgeX
