@@ -1,25 +1,24 @@
 package edu.cmu.cs.gabriel.client.comm;
 
-import android.annotation.SuppressLint;
+
 import android.app.Application;
-import android.location.Location;
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Build;
 import android.util.Log;
 import android.util.LongSparseArray;
-
-import androidx.annotation.RequiresApi;
-
-
-import java.util.List;
 
 import edu.cmu.cs.gabriel.client.observer.EventObserver;
 import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.client.socket.TimingSocketWrapper;
 import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
+
+// Additions for measurement collection
+import android.annotation.SuppressLint;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
+import androidx.annotation.RequiresApi;
 import edu.cmu.cs.cliostore.InfluxDBHelper;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
@@ -31,17 +30,15 @@ public class TimingServerComm extends ServerCommCore {
     private TimingSocketWrapper timingSocketWrapper;
     private long count;
     private long intervalCount;
-    private long foreverCount = 0;
     private long startTime;
     private long intervalStartTime;
 
+    // Measurement collection helpers
     private static LocationHelper locHelper = new LocationHelper();
-    private static final long createTime = System.currentTimeMillis();
-    private static final long EPOCHLENGTH = 240; // Every N * 10 Frames -- 240 is 2 minutes at 20 fps
+    private static InfluxDBHelper influxhelper = new InfluxDBHelper();
 
     private static String MSGTAG = "";
     private static final String dl = "|";
-    private static InfluxDBHelper influxhelper = new InfluxDBHelper();
 
     // TODO: Replace these constructors with a builder to allow setting tokenLimit without setting
     //       outputFreq
@@ -57,14 +54,12 @@ public class TimingServerComm extends ServerCommCore {
 //        this.influxhelper.dropMeasurementRecords("framerate");
 //        this.influxhelper.dropMeasurementRecords("roundtriptime"); // Clear it out
         NetworkInfo active_network = conMan.getActiveNetworkInfo();
-        String connect_state = active_network.getState().name();
         String connect_type = active_network.getTypeName();
 
         // Create tag showing device, server and network data
         MSGTAG = String.format("|%s|%s|%s|%s|%s|",TAG,Build.MANUFACTURER,Build.MODEL,serverURL,connect_type);
 
         locMan.requestLocationUpdates("gps",1000, (float) 1, locHelper);
-        List<String> locProviders = locMan.getAllProviders();
 
         Consumer<ResultWrapper> timingConsumer = new Consumer<ResultWrapper>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
@@ -101,25 +96,18 @@ public class TimingServerComm extends ServerCommCore {
                     long intervalStartTime = TimingServerComm.this.intervalStartTime;
                     double intervalFps = TimingServerComm.this.round2((double)intervalCount /
                             ((timestamp - intervalStartTime) / 1000.0));
-                    Log.i(TimingServerComm.this.MSGTAG,"IntervalFPS: "  + intervalFps);
-                    Log.i(TimingServerComm.this.MSGTAG, "Overall FPS: " + overallFps);
+                    Log.i(TimingServerComm.this.MSGTAG,"IntervalFPS: "  + intervalFps + " Overall FPS: " + overallFps) ;
                     influxhelper.addPoint("framerate",Build.MANUFACTURER,Build.MODEL,serverURL, connect_type, overallFps,intervalFps);
 
                     // Log Round Trip Time (RTT) Data
                     double[] artt = TimingServerComm.this.logAvgRtt();
-                    Log.i(TimingServerComm.this.MSGTAG , "OverallRTT(ms): " +  artt[0]);
-                    Log.i(TimingServerComm.this.MSGTAG , "IntervalRTT(ms): "  + artt[1]);
+                    Log.i(TimingServerComm.this.MSGTAG , "OverallRTT(ms): " +  artt[0] + " IntervalRTT(ms): "  + artt[1]);
                     influxhelper.addPoint("roundtriptime",Build.MANUFACTURER,Build.MODEL,serverURL, connect_type, artt[0],artt[1]);
 
                     TimingServerComm.this.intervalCount = 0;
                     // TODO: change to java.time.Instant once we can stop supporting Google Glass
                     //       Explorer Edition
                     TimingServerComm.this.intervalStartTime = System.currentTimeMillis();
-                    TimingServerComm.this.foreverCount++;
-                    if (TimingServerComm.this.foreverCount >= EPOCHLENGTH) {
-                        TimingServerComm.this.foreverCount = 0;
-                        Log.i(TimingServerComm.this.MSGTAG , "End of EPOCH");
-                    }
                 }
             }
         };
