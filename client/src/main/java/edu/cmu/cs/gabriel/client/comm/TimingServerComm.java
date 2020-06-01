@@ -49,12 +49,7 @@ public class TimingServerComm extends ServerCommCore {
         super(tokenLimit);
 
         this.receivedTimestamps = new LongSparseArray<>();
-//        this.influxhelper.listDB();
-//        this.influxhelper.dropMeasurementRecords("location");
-//        this.influxhelper.dropMeasurementRecords("framerate");
-//        this.influxhelper.dropMeasurementRecords("roundtriptime"); // Clear it out
-        NetworkInfo active_network = conMan.getActiveNetworkInfo();
-        String connect_type = active_network.getTypeName();
+        String connect_type = conMan.getActiveNetworkInfo().getTypeName();
 
         // Create tag showing device, server and network data
         MSGTAG = String.format("|%s|%s|%s|%s|%s|",TAG,Build.MANUFACTURER,Build.MODEL,serverURL,connect_type);
@@ -82,9 +77,7 @@ public class TimingServerComm extends ServerCommCore {
                     if (locationGPS != null) {
                         msg = String.format("Current GPS LONG/LAT: POINT(%f %f)",locationGPS.getLongitude(),locationGPS.getLatitude());
                         influxhelper.addPoint("location",Build.MANUFACTURER,Build.MODEL,serverURL, connect_type, locationGPS.getLongitude(),locationGPS.getLatitude());
-                    } else {
-                        msg = "Current GPS LAT/LNG: UNAVAILABLE";
-                    }
+                    } else { msg = "Current GPS LAT/LNG: UNAVAILABLE"; }
                     Log.i(TimingServerComm.this.MSGTAG , msg);
 
                     // Log FPS data
