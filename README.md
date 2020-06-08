@@ -14,7 +14,7 @@ config. See [here](https://developer.android.com/guide/topics/manifest/applicati
 
 Create a `edu.cmu.cs.gabriel.client.comm.ServerComm` instance.
 Send messages to the server using either the `sendNoWait`, `sendBlocking`, or 
-`sendSupplier` methods. See [here](https://github.com/cmusatyalab/gabriel-instruction/blob/31bbe9571b37187931e293e29faf536a51140996/android-client/app/src/main/java/edu/cmu/cs/gabrielclient/network/InstructionComm.java#L111) for an example.
+`sendSupplier` methods. See [here](https://github.com/cmusatyalab/openrtist/blob/68958fe4393599de567bd4f1917480610e644bed/android-client/app/src/main/java/edu/cmu/cs/gabriel/network/BaseComm.java#L128) for an example.
 
 ## Publishing Changes to Maven Central
 
