@@ -1,9 +1,12 @@
 package edu.cmu.cs.gabriel.client.observer;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.tinder.scarlet.Stream.Observer;
+
+import org.jetbrains.annotations.NotNull;
 
 import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.client.token.TokenManager;
@@ -21,6 +24,7 @@ public class ResultObserver implements Observer<byte[]>  {
         this.consumer = consumer;
     }
 
+    @SuppressLint("Assert")
     @Override
     public void onNext(byte[] rawToClient) {
         ToClient toClient;
@@ -31,36 +35,38 @@ public class ResultObserver implements Observer<byte[]>  {
             return;
         }
 
-        if (toClient.hasWelcomeMessage()) {
-            int numTokens = toClient.getWelcomeMessage().getNumTokensPerFilter();
-            for (String filterName : toClient.getWelcomeMessage().getFiltersConsumedList()) {
-                this.tokenManager.setNumTokens(numTokens, filterName);
-            }
+        switch (toClient.getWelcomeOrResultCase()) {
+            case WELCOME_MESSAGE:
+                this.tokenManager.setTokensFromWelcomeMessage(toClient.getWelcomeMessage());
 
-            assert !toClient.getReturnToken();
-        } else if (toClient.hasResultWrapper()) {
-            ResultWrapper resultWrapper = toClient.getResultWrapper();
-            if (toClient.getReturnToken()) {
-                this.tokenManager.returnToken(resultWrapper.getFilterPassed());
-            }
-
-            if (resultWrapper.getStatus() != ResultWrapper.Status.SUCCESS) {
-                Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());
+                assert !toClient.getReturnToken();
                 return;
-            }
+            case RESULT_WRAPPER:
+                ResultWrapper resultWrapper = toClient.getResultWrapper();
+                if (toClient.getReturnToken()) {
+                    this.tokenManager.returnToken(resultWrapper.getFilterPassed());
+                }
 
-            try {
-                consumer.accept(resultWrapper);
-            } catch (Exception e) {
-                Log.e(TAG, "Consumer threw exception.", e);
-            }
-        } else {
-            throw new RuntimeException("Server sent empty message");
+                if (resultWrapper.getStatus() != ResultWrapper.Status.SUCCESS) {
+                    Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());
+                    return;
+                }
+
+                try {
+                    consumer.accept(resultWrapper);
+                } catch (Exception e) {
+                    Log.e(TAG, "Consumer threw exception.", e);
+                }
+                return;
+            case WELCOMEORRESULT_NOT_SET:
+                throw new RuntimeException("Server sent empty message");
+            default:
+                throw new IllegalStateException("Unexpected value: " + toClient.getWelcomeOrResultCase());
         }
     }
 
     @Override
-    public void onError(Throwable throwable) {
+    public void onError(@NotNull Throwable throwable) {
         Log.e(TAG, "onError", throwable);
     }
 
