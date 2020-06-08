@@ -26,7 +26,9 @@ public abstract class ServerCommCore {
 
     /** Send if there is at least one token available. Returns false if there were no tokens. */
     public boolean sendNoWait(FromClient.Builder fromClientBuilder) {
-        boolean gotToken = tokenManager.getTokenNoWait();
+        String filterName = fromClientBuilder.getFilterPassed();
+
+        boolean gotToken = tokenManager.getTokenNoWait(filterName);
         if (!gotToken) {
             return false;
         }
@@ -45,7 +47,9 @@ public abstract class ServerCommCore {
      * @return False if we ran into an error.
      */
     public boolean sendBlocking(FromClient.Builder fromClientBuilder) {
-        boolean gotToken = this.tokenManager.getToken();
+        String filterName = fromClientBuilder.getFilterPassed();
+
+        boolean gotToken = this.tokenManager.getToken(filterName);
         if (!gotToken) {
             return false;
         }
@@ -58,15 +62,15 @@ public abstract class ServerCommCore {
      * fromClientBuilder to send. fromClientBuilder is modified and sent according to the
      * description of {@link #sendBlocking}
      * Return false if we ran into an error. */
-    public boolean sendSupplier(Supplier<FromClient.Builder> supplier) {
-        boolean gotToken = this.tokenManager.getToken();
+    public boolean sendSupplier(Supplier<FromClient.Builder> supplier, String filterName) {
+        boolean gotToken = this.tokenManager.getToken(filterName);
         if (!gotToken) {
             return false;
         }
 
         FromClient.Builder fromClientBuilder = supplier.get();
         if (fromClientBuilder == null) {
-            this.tokenManager.returnToken();
+            this.tokenManager.returnToken(filterName);
             return false;
         }
 

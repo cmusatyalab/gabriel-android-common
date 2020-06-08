@@ -31,26 +31,31 @@ public class ResultObserver implements Observer<byte[]>  {
             return;
         }
 
+        if (toClient.hasWelcomeMessage()) {
+            int numTokens = toClient.getWelcomeMessage().getNumTokensPerFilter();
+            for (String filterName : toClient.getWelcomeMessage().getFiltersConsumedList()) {
+                this.tokenManager.setNumTokens(numTokens, filterName);
+            }
 
-        if (!toClient.hasResultWrapper()) {
-            // Set num tokens on welcome message
-            this.tokenManager.setNumTokens(toClient.getNumTokens());
-            return;
-        }
+            assert !toClient.getReturnToken();
+        } else if (toClient.hasResultWrapper()) {
+            ResultWrapper resultWrapper = toClient.getResultWrapper();
+            if (toClient.getReturnToken()) {
+                this.tokenManager.returnToken(resultWrapper.getFilterPassed());
+            }
 
-        // We only return one to avoid race conditions when we have multiple messages in flight
-        this.tokenManager.returnToken();
+            if (resultWrapper.getStatus() != ResultWrapper.Status.SUCCESS) {
+                Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());
+                return;
+            }
 
-        ResultWrapper resultWrapper = toClient.getResultWrapper();
-        if (resultWrapper.getStatus() != ResultWrapper.Status.SUCCESS) {
-            Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());
-            return;
-        }
-
-        try {
-            consumer.accept(resultWrapper);
-        } catch (Exception e) {
-            Log.e(TAG, "Consumer threw exception.", e);
+            try {
+                consumer.accept(resultWrapper);
+            } catch (Exception e) {
+                Log.e(TAG, "Consumer threw exception.", e);
+            }
+        } else {
+            throw new RuntimeException("Server sent empty message");
         }
     }
 

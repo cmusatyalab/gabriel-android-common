@@ -2,70 +2,76 @@ package edu.cmu.cs.gabriel.client.token;
 
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TokenManager {
     private static String TAG = "TokenManager";
 
-    private volatile int numTokens;
-    private final Object tokenLock;
+    private HashMap<String, Integer> tokenCounter;
     private boolean running;
     private int tokenLimit;
 
     public TokenManager(int tokenLimit) {
-        this.tokenLock = new Object();
-        this.numTokens = 0;
+        this.tokenCounter = new HashMap<>();
         this.running = false;
         this.tokenLimit = tokenLimit;
     }
 
-    public void setNumTokens (int numTokens) {
+    public void setNumTokens (int numTokens, String filterName) {
         numTokens = Math.min(numTokens, this.tokenLimit);
 
-        synchronized (this.tokenLock) {
-            this.numTokens = numTokens;
-            this.tokenLock.notify();
+        synchronized (this.tokenCounter) {
+            this.tokenCounter.put(filterName, numTokens);
+            this.tokenCounter.notify();
         }
 
-        Log.i(TAG, "numTokens is now " + numTokens);
+        Log.i(TAG, "numTokens is now " + numTokens + " for filter " + filterName);
     }
 
     /** Take token if one is available. Otherwise return False. */
-    public boolean getTokenNoWait() {
-        synchronized (this.tokenLock) {
-            if (numTokens == 0) {
+    public boolean getTokenNoWait(String filterName) {
+        synchronized (this.tokenCounter) {
+            int oldValue = this.tokenCounter.get(filterName);
+            if (oldValue == 0) {
                 return false;
             }
 
-            numTokens--;
+            this.tokenCounter.put(filterName, oldValue - 1);
             return true;
         }
     }
 
-    public void returnToken() {
-        synchronized (this.tokenLock) {
-            this.numTokens++;
-            this.tokenLock.notify();
+    public void returnToken(String filterName) {
+        synchronized (this.tokenCounter) {
+            int oldValue = this.tokenCounter.get(filterName);
+            this.tokenCounter.put(filterName, oldValue + 1);
+            this.tokenCounter.notify();
         }
     }
 
     /** Wait until there is a token available. Then take it. Return false if error. */
-    public boolean getToken() {
-        synchronized (this.tokenLock) {
-            try {
-                while (this.numTokens < 1) {
+    public boolean getToken(String filterName) {
+        synchronized (this.tokenCounter) {
+            int oldValue = this.tokenCounter.get(filterName);
+            while (oldValue < 1) {
+                try {
                     if (!this.running) {
                         Log.i(TAG, "Not running. Will not wait for token");
                         return false;
                     }
 
                     Log.d(TAG, "Too few tokens. Waiting for more.");
-                    this.tokenLock.wait();
+                    this.tokenCounter.wait();
+
+                    oldValue = this.tokenCounter.get(filterName);
+                } catch(InterruptedException e){
+                    Log.e(TAG, "Interrupted Exception while waiting for lock", e);
+                    return false;
                 }
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Interrupted Exception while waiting for lock", e);
-                return false;
             }
 
-            this.numTokens--;
+            this.tokenCounter.put(filterName, oldValue - 1);
             return true;
         }
     }
@@ -76,13 +82,13 @@ public class TokenManager {
 
     public void stop() {
         this.running = false;
-        synchronized (this.tokenLock) {
-            // Zero out tokens so we have to get them from the server if we reconnect
-            this.numTokens = 0;
+        synchronized (this.tokenCounter) {
+            // Clear all tokens so we have to get them from the server if we reconnect
+            this.tokenCounter.clear();
 
             // This will allow a background handler to return if it is currently waiting on
-            // this.tokenLock
-            this.tokenLock.notify();
+            // this.tokenCounter
+            this.tokenCounter.notify();
         }
     }
 
