@@ -4,8 +4,8 @@ Android library for communicating with a [Gabriel Server](https://github.com/cmu
 
 ## Usage
 
-Add the lines `implementation 'edu.cmu.cs.gabriel:client:0.1.8'` and `implementation 'edu.cmu.cs.gabriel:protocol:0.1.4'` to your app's build.gradle file.
-Your project must include either the `jcenter()` or `mavenCentral()` repository. 
+Add the lines `implementation 'edu.cmu.cs.gabriel:client:0.1.9'` and `implementation 'edu.cmu.cs.gabriel:protocol:0.1.15'` to your app's build.gradle file.
+Your project must include either the `jcenter()`repository  or the `mavenCentral()` repository. 
 
 Your app must allow cleartext traffic. If your app does not have an Android Network Security 
 Config, you must sepcify `android:usesCleartextTraffic="true"` in the [application element](https://developer.android.com/guide/topics/manifest/application-element) of your Manifest file. 
