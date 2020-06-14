@@ -47,6 +47,11 @@ public class ResultObserver implements Observer<byte[]>  {
                     this.tokenManager.returnToken(resultWrapper.getFilterPassed());
                 }
 
+                if (resultWrapper.getStatus() == 
+                    ResultWrapper.Status.NO_ENGINE_FOR_FILTER_PASSED) {
+                    throw new RuntimeException("No engine for Filter Passed");
+                }                
+                
                 if (resultWrapper.getStatus() != ResultWrapper.Status.SUCCESS) {
                     Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());
                     return;
