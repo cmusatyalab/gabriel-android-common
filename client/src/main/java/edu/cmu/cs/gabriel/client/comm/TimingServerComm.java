@@ -21,6 +21,8 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 import edu.cmu.cs.cliostore.InfluxDBHelper;
 
+
+
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class TimingServerComm extends ServerCommCore {
     private final static String TAG = "TimingServerComm";
@@ -28,6 +30,7 @@ public class TimingServerComm extends ServerCommCore {
 
     private LongSparseArray<Long> receivedTimestamps;
     private TimingSocketWrapper timingSocketWrapper;
+    private boolean firsttime = true;
     private long count;
     private long intervalCount;
     private long startTime;
@@ -36,6 +39,7 @@ public class TimingServerComm extends ServerCommCore {
     // Measurement collection helpers
     private static LocationHelper locHelper = new LocationHelper();
     private static InfluxDBHelper influxhelper = new InfluxDBHelper();
+//    private static val traceresult = TraceRoute.traceRoute("www.google.com");
 
     private static String MSGTAG = "";
     private static final String dl = "|";
@@ -47,14 +51,17 @@ public class TimingServerComm extends ServerCommCore {
                             final String serverURL, final ConnectivityManager conMan, final LocationManager locMan, Application application,
                             int tokenLimit, final int outputFreq) {
         super(tokenLimit);
-
+        String influxURL = serverURL.replace("ws://","").replaceAll(":[0-9]*",":30086");
         this.receivedTimestamps = new LongSparseArray<>();
+
         String connect_type = conMan.getActiveNetworkInfo().getTypeName();
 
         // Create tag showing device, server and network data
         MSGTAG = String.format("|%s|%s|%s|%s|%s|",TAG,Build.MANUFACTURER,Build.MODEL,serverURL,connect_type);
 
         locMan.requestLocationUpdates("gps",1000, (float) 1, locHelper);
+        influxhelper.setSessionID();
+//        influxhelper.addPoint("traceroute",Build.MANUFACTURER,Build.MODEL,serverURL, connect_type);
 
         Consumer<ResultWrapper> timingConsumer = new Consumer<ResultWrapper>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
@@ -69,7 +76,10 @@ public class TimingServerComm extends ServerCommCore {
                 TimingServerComm.this.receivedTimestamps.put(resultWrapper.getFrameId(), timestamp);
                 TimingServerComm.this.count++;
                 TimingServerComm.this.intervalCount++;
-
+                if (TimingServerComm.this.firsttime) {
+                    influxhelper.addPoint("traceroute",Build.MANUFACTURER,Build.MODEL,serverURL, connect_type);
+                    TimingServerComm.this.firsttime = false;
+                }
                 if (outputFreq > 0 && (TimingServerComm.this.count % outputFreq == 0)) {
                     // Log GPS Data
                     String msg;
