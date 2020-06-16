@@ -15,7 +15,7 @@ import edu.cmu.cs.gabriel.client.token.TokenManager;
 import edu.cmu.cs.gabriel.protocol.Protos;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
-abstract class ServerCommCore {
+public abstract class ServerCommCore {
     private static final String TAG = "ServerCommCore";
 
     TokenManager tokenManager;
@@ -125,12 +125,6 @@ abstract class ServerCommCore {
 
         this.sendHelper(fromClientBuilder);
         return SendSupplierResult.SUCCESS;
-    }
-
-    public enum SendSupplierResult {
-        SUCCESS,
-        NULL_FROM_SUPPLIER,
-        ERROR_GETTING_TOKEN
     }
 
     public void stop() {
