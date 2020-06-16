@@ -48,6 +48,11 @@ public class TokenManager {
 
     private synchronized boolean waitForWelcomeMessage() {
         while (!this.receivedWelcomeMessage) {
+            if (!this.running) {
+                Log.i(TAG, "Not running. Will not wait for token");
+                return false;
+            }
+
             Log.i(TAG, "Waiting for welcome message.");
             try {
                 this.wait();
@@ -66,20 +71,30 @@ public class TokenManager {
             return false;
         }
 
-        int oldValue = this.tokenCounter.get(filterName);
-        if (oldValue == 0) {
+        Integer oldValue = this.tokenCounter.get(filterName);
+        if (oldValue == null) {
+            Log.e(TAG, "The token counter was garbage collected because the program is " +
+                    "exiting");
+            return false;
+        }
+        if (oldValue.intValue() == 0) {
             return false;
         }
 
-        this.tokenCounter.put(filterName, oldValue - 1);
+        this.tokenCounter.put(filterName, oldValue.intValue() - 1);
         return true;
     }
 
     public synchronized void returnToken(String filterName) {
         assert this.tokenCounter.containsKey(filterName);
 
-        int oldValue = this.tokenCounter.get(filterName);
-        this.tokenCounter.put(filterName, oldValue + 1);
+        Integer oldValue = this.tokenCounter.get(filterName);
+        if (oldValue == null) {
+            Log.e(TAG, "The token counter was garbage collected because the program is " +
+                    "exiting");
+            return;
+        }
+        this.tokenCounter.put(filterName, oldValue.intValue() + 1);
         this.notify();
     }
 
@@ -94,7 +109,14 @@ public class TokenManager {
             return false;
         }
 
-        int oldValue = this.tokenCounter.get(filterName);
+        Integer output = this.tokenCounter.get(filterName);
+        if (output == null) {
+            Log.e(TAG, "The token counter was garbage collected because the program is " +
+                    "exiting");
+            return false;
+        }
+
+        int oldValue = output.intValue();
         while (oldValue < 1) {
             if (!this.running) {
                 Log.i(TAG, "Not running. Will not wait for token");
@@ -109,7 +131,14 @@ public class TokenManager {
                 return false;
             }
 
-            oldValue = this.tokenCounter.get(filterName);
+            output = this.tokenCounter.get(filterName);
+            if (output == null) {
+                Log.e(TAG, "The token counter was garbage collected because the program is " +
+                        "exiting");
+                return false;
+            }
+
+            oldValue = output.intValue();
         }
 
         this.tokenCounter.put(filterName, oldValue - 1);

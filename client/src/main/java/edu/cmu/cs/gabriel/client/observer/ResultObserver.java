@@ -18,11 +18,11 @@ public class ResultObserver implements Observer<byte[]>  {
 
     private TokenManager tokenManager;
     private Consumer<ResultWrapper> consumer;
-    Consumer<ResultWrapper.Status> onErrorResult;
+    private Runnable onErrorResult;
 
 
-    public ResultObserver(TokenManager tokenManager, Consumer<ResultWrapper> consumer,
-                          Consumer<ResultWrapper.Status> onErrorResult) {
+    public ResultObserver(
+            TokenManager tokenManager, Consumer<ResultWrapper> consumer, Runnable onErrorResult) {
         this.tokenManager = tokenManager;
         this.consumer = consumer;
         this.onErrorResult = onErrorResult;
@@ -55,7 +55,7 @@ public class ResultObserver implements Observer<byte[]>  {
                 if (status == ResultWrapper.Status.ENGINE_ERROR ||
                         status == ResultWrapper.Status.WRONG_INPUT_FORMAT ||
                         status == ResultWrapper.Status.NO_ENGINE_FOR_FILTER_PASSED) {
-                    this.onErrorResult.accept(status);
+                    this.onErrorResult.run();
                 }
                 
                 if (status != ResultWrapper.Status.SUCCESS) {

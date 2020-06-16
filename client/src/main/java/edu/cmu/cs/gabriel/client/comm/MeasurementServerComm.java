@@ -16,17 +16,16 @@ public class MeasurementServerComm extends ServerCommCore {
 
     private LongSparseArray<Long> receivedTimestamps;
     private MeasurementSocketWrapper measurementSocketWrapper;
-    private int count;  // LongSparseArray#size returns an int
     private long startTime;
     private long intervalStartTime;
 
     // TODO: Replace these constructors with a builder to allow setting tokenLimit without setting
     //       outputFreq
     public MeasurementServerComm(
-            final Consumer<ResultWrapper> consumer, Consumer<String> onDisconnect, String serverURL,
-            Application application, final Consumer<RttFps> intervalReporter, int tokenLimit,
-            final int outputFreq) {
-        super(onDisconnect, tokenLimit, application);
+            final Consumer<ResultWrapper> consumer, Consumer<ErrorType> onDisconnect,
+            String serverURL, Application application, final Consumer<RttFps> intervalReporter,
+            int tokenLimit, final int outputFreq) {
+        super(onDisconnect, tokenLimit);
 
         this.receivedTimestamps = new LongSparseArray<>();
 
@@ -37,11 +36,11 @@ public class MeasurementServerComm extends ServerCommCore {
                 consumer.accept(resultWrapper);
                 long frameId = resultWrapper.getFrameId();
                 MeasurementServerComm.this.receivedTimestamps.put(frameId, currentTime);
-                MeasurementServerComm.this.count++;
+                int numReceived = MeasurementServerComm.this.receivedTimestamps.size();
 
-                if (outputFreq > 0 && (MeasurementServerComm.this.count % outputFreq == 0)) {
+                if (outputFreq > 0 && (numReceived % outputFreq == 0)) {
                     double intervalRtt = MeasurementServerComm.this.computeRtt(
-                            MeasurementServerComm.this.count - outputFreq);
+                            numReceived - outputFreq);
                     double intervalFps = MeasurementServerComm.this.computeFps(
                             outputFreq, currentTime, MeasurementServerComm.this.intervalStartTime);
                     intervalReporter.accept(new RttFps(intervalRtt, intervalFps));
@@ -57,50 +56,43 @@ public class MeasurementServerComm extends ServerCommCore {
                 serverURL, application, this.lifecycleRegistry, resultObserver, this.eventObserver);
         this.socketWrapper = this.measurementSocketWrapper;
 
-        this.zeroCountTimesNow();
+        this.setTimes();
     }
 
     public MeasurementServerComm(
-            Consumer<ResultWrapper> consumer, Consumer<String> onDisconnect, String serverURL,
+            Consumer<ResultWrapper> consumer, Consumer<ErrorType> onDisconnect, String serverURL,
             Application application, Consumer<RttFps> intervalReporter, int tokenLimit) {
         this(consumer, onDisconnect, serverURL, application, intervalReporter, tokenLimit,
                 MeasurementServerComm.DEFAULT_OUTPUT_FREQ);
     }
 
     public MeasurementServerComm(
-            Consumer<ResultWrapper> consumer, Consumer<String> onDisconnect, String serverURL,
+            Consumer<ResultWrapper> consumer, Consumer<ErrorType> onDisconnect, String serverURL,
             Application application, Consumer<RttFps> intervalReporter) {
         this(consumer, onDisconnect, serverURL, application, intervalReporter, Integer.MAX_VALUE);
     }
 
-    private void zeroCountTimesNow() {
-        this.count = 0;
+    private void setTimes() {
         this.startTime = SystemClock.elapsedRealtime();
         this.intervalStartTime = this.startTime;
     }
 
-    private double computeFps(long count, long currentTime, long startTime) {
-        return (double)count / ((currentTime - startTime) / 1000.0);
+    private double computeFps(int numFrames, long currentTime, long startTime) {
+        return (double)numFrames / ((currentTime - startTime) / 1000.0);
     }
 
     private double computeRtt(int startingFrame) {
-        long count = 0;
         long totalRtt = 0;
+        int numFrames = this.receivedTimestamps.size() - 1 - startingFrame;
 
-        LongSparseArray<Long> sentTimestamps = this.measurementSocketWrapper.getSentTimestamps();
-        for (int i = startingFrame; i < sentTimestamps.size(); i++) {
-            long frameId = sentTimestamps.keyAt(i);
-            Long sentTimestamp = sentTimestamps.valueAt(i);
+        for (int i = startingFrame; i < this.receivedTimestamps.size(); i++) {
+            long frameId = this.receivedTimestamps.keyAt(i);
+            Long receivedTimestamp = this.receivedTimestamps.valueAt(i);
 
-            Long receivedTimestamp = this.receivedTimestamps.get(frameId);
-            if (receivedTimestamp == null) {
-                Log.e(TAG, "Frame with ID " + frameId + " never received");
-            } else {
-                count++;
-                totalRtt += (receivedTimestamp - sentTimestamp);
-            }
+            Long sentTimestamp = this.measurementSocketWrapper.getSentTimestamps().get(frameId);
+            totalRtt += (receivedTimestamp - sentTimestamp);
         }
-        return ((double)totalRtt) / count;
+        return ((double)totalRtt) / numFrames;
     }
 
     public double getOverallAvgRtt() {
@@ -108,13 +100,14 @@ public class MeasurementServerComm extends ServerCommCore {
     }
 
     public double getOverallFps() {
-        return computeFps(MeasurementServerComm.this.count, SystemClock.elapsedRealtime(),
+        return computeFps(
+                MeasurementServerComm.this.receivedTimestamps.size(), SystemClock.elapsedRealtime(),
                 MeasurementServerComm.this.startTime);
     }
 
     public void clearMeasurements() {
         this.measurementSocketWrapper.clearSentTimestamps();
         this.receivedTimestamps.clear();
-        this.zeroCountTimesNow();
+        this.setTimes();
     }
 }

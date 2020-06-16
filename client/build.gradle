@@ -46,9 +46,9 @@ tasks.withType(Javadoc).all { enabled = false }
 // The default PgpSigner can't handle PGP hardware keys or smartcards, also
 // Gnupg2 no longer maintains a secring file by default. It should be more
 // reliable to just use gpg2 for signing.
-apply plugin: 'signing'
-signing {
-    useGpgCmd()
-}
+//apply plugin: 'signing'
+//signing {
+//    useGpgCmd()
+//}
 
 apply plugin: 'com.vanniktech.maven.publish'

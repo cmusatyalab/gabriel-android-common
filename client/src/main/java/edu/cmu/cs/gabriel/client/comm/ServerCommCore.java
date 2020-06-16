@@ -1,18 +1,14 @@
 package edu.cmu.cs.gabriel.client.comm;
 
-import android.app.Application;
-
 import com.tinder.scarlet.Lifecycle;
 import com.tinder.scarlet.ShutdownReason;
 import com.tinder.scarlet.lifecycle.LifecycleRegistry;
 
-import edu.cmu.cs.gabriel.client.R;
 import edu.cmu.cs.gabriel.client.function.Consumer;
 import edu.cmu.cs.gabriel.client.function.Supplier;
 import edu.cmu.cs.gabriel.client.observer.EventObserver;
 import edu.cmu.cs.gabriel.client.socket.SocketWrapper;
 import edu.cmu.cs.gabriel.client.token.TokenManager;
-import edu.cmu.cs.gabriel.protocol.Protos;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
 public abstract class ServerCommCore {
@@ -22,23 +18,21 @@ public abstract class ServerCommCore {
     SocketWrapper socketWrapper;
     private long frameID;
     final LifecycleRegistry lifecycleRegistry;
-    Consumer<Protos.ResultWrapper.Status> onErrorResult;
+    Runnable onErrorResult;
     EventObserver eventObserver;
 
     public ServerCommCore(
-            final Consumer<String> onDisconnect, int tokenLimit, final Application application) {
+            final Consumer<ErrorType> onDisconnect, int tokenLimit) {
         this.tokenManager = new TokenManager(tokenLimit);
         this.frameID = 0;
 
         this.lifecycleRegistry = new LifecycleRegistry(0L);
-        this.onErrorResult = new Consumer<Protos.ResultWrapper.Status>() {
+        this.onErrorResult = new Runnable() {
             @Override
-            public void accept(Protos.ResultWrapper.Status status) {
+            public void run() {
                 lifecycleRegistry.onNext(
                         new Lifecycle.State.Stopped.WithReason(ShutdownReason.GRACEFUL));
-                String messagePrefix = application.getResources().getString(
-                        R.string.server_error_prefix);
-                onDisconnect.accept(messagePrefix + status.name());
+                onDisconnect.accept(ErrorType.SERVER_ERROR);
                 ServerCommCore.this.tokenManager.stop();
             }
         };
@@ -46,13 +40,14 @@ public abstract class ServerCommCore {
         Runnable onConnectionProblem = new Runnable() {
             @Override
             public void run() {
-                String message = ServerCommCore.this.tokenManager.isRunning()
-                        ? application.getResources().getString(R.string.server_disconnected)
-                        : application.getResources().getString(R.string.could_not_connect);
-                onDisconnect.accept(message);
+                ErrorType errorType = ServerCommCore.this.tokenManager.isRunning()
+                        ? ErrorType.SERVER_DISCONNECTED
+                        : ErrorType.COULD_NOT_CONNECT;
+                onDisconnect.accept(errorType);
             }
         };
-        this.eventObserver = new EventObserver(this.tokenManager, onConnectionProblem);
+        this.eventObserver = new EventObserver(
+                this.tokenManager, onConnectionProblem, this.lifecycleRegistry);
     }
 
     private void sendHelper(FromClient.Builder fromClientBuilder) {

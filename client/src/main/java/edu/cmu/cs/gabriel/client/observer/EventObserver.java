@@ -2,8 +2,11 @@ package edu.cmu.cs.gabriel.client.observer;
 
 import android.util.Log;
 
+import com.tinder.scarlet.Lifecycle;
+import com.tinder.scarlet.ShutdownReason;
 import com.tinder.scarlet.Stream.Observer;
 import com.tinder.scarlet.WebSocket.Event;
+import com.tinder.scarlet.lifecycle.LifecycleRegistry;
 
 import edu.cmu.cs.gabriel.client.token.TokenManager;
 
@@ -12,10 +15,13 @@ public class EventObserver implements Observer<Event> {
 
     private TokenManager tokenManager;
     private Runnable onConnectionProblem;
+    private LifecycleRegistry lifecycleRegistry;
 
-    public EventObserver(TokenManager tokenManager, Runnable onConnectionProblem) {
+    public EventObserver(TokenManager tokenManager, Runnable onConnectionProblem,
+                         LifecycleRegistry lifecycleRegistry) {
         this.tokenManager = tokenManager;
         this.onConnectionProblem = onConnectionProblem;
+        this.lifecycleRegistry = lifecycleRegistry;
     }
 
     @Override
@@ -27,7 +33,10 @@ public class EventObserver implements Observer<Event> {
                 this.tokenManager.start();
             } else if (receivedUpdate instanceof Event.OnConnectionFailed) {
                 this.onConnectionProblem.run();
-                this.tokenManager.stop();
+
+                // Do not try to reconnect
+                this.lifecycleRegistry.onNext(
+                        new Lifecycle.State.Stopped.WithReason(ShutdownReason.GRACEFUL));
             }
 
             // We do not check for Event.OnConnectionClosed because this is what gets sent when the
