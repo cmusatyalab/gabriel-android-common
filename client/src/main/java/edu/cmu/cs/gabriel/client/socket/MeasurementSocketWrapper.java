@@ -10,10 +10,10 @@ import edu.cmu.cs.gabriel.client.observer.EventObserver;
 import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
-public class TimingSocketWrapper extends SocketWrapper {
+public class MeasurementSocketWrapper extends SocketWrapper {
     private LongSparseArray<Long> sentTimestamps;
 
-    public TimingSocketWrapper(
+    public MeasurementSocketWrapper(
             String serverURL, Application application, LifecycleRegistry lifecycleRegistry,
             ResultObserver resultObserver, EventObserver eventObserver) {
         super(serverURL, application, lifecycleRegistry, resultObserver, eventObserver);
@@ -23,8 +23,8 @@ public class TimingSocketWrapper extends SocketWrapper {
 
     public void send(FromClient fromClient) {
         long timestamp = SystemClock.elapsedRealtime();
-        this.sentTimestamps.put(fromClient.getFrameId(), timestamp);
         super.send(fromClient);
+        this.sentTimestamps.put(fromClient.getFrameId(), timestamp);
     }
 
     public LongSparseArray<Long> getSentTimestamps() {

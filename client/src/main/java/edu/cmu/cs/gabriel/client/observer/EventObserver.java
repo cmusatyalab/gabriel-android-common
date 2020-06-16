@@ -8,7 +8,7 @@ import com.tinder.scarlet.WebSocket.Event;
 import edu.cmu.cs.gabriel.client.token.TokenManager;
 
 public class EventObserver implements Observer<Event> {
-    private static String TAG = "EventObserver";
+    private static final String TAG = "EventObserver";
 
     private TokenManager tokenManager;
     private Runnable onConnectionProblem;

@@ -6,7 +6,7 @@ import java.util.Map;
 import edu.cmu.cs.gabriel.protocol.Protos.ToClient.WelcomeMessage;
 
 public class TokenManager {
-    private static String TAG = "TokenManager";
+    private static final String TAG = "TokenManager";
 
     private Map<String, Integer> tokenCounter;
     private boolean running;

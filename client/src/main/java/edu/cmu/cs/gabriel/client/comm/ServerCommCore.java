@@ -16,7 +16,7 @@ import edu.cmu.cs.gabriel.protocol.Protos;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
 
 abstract class ServerCommCore {
-    private static String TAG = "ServerCommCore";
+    private static final String TAG = "ServerCommCore";
 
     TokenManager tokenManager;
     SocketWrapper socketWrapper;
@@ -109,22 +109,28 @@ abstract class ServerCommCore {
 
     /** Wait until there is a token available. Then call @param supplier to get the partially built
      * fromClientBuilder to send. fromClientBuilder is modified and sent according to the
-     * description of {@link #sendBlocking}
-     * Return false if we ran into an error. */
-    public boolean sendSupplier(Supplier<FromClient.Builder> supplier, String filterName) {
+     * description of {@link #sendBlocking} */
+    public SendSupplierResult sendSupplier(
+            Supplier<FromClient.Builder> supplier, String filterName) {
         boolean gotToken = this.tokenManager.getToken(filterName);
         if (!gotToken) {
-            return false;
+            return SendSupplierResult.ERROR_GETTING_TOKEN;
         }
 
         FromClient.Builder fromClientBuilder = supplier.get();
         if (fromClientBuilder == null) {
             this.tokenManager.returnToken(filterName);
-            return false;
+            return SendSupplierResult.NULL_FROM_SUPPLIER;
         }
 
         this.sendHelper(fromClientBuilder);
-        return true;
+        return SendSupplierResult.SUCCESS;
+    }
+
+    public enum SendSupplierResult {
+        SUCCESS,
+        NULL_FROM_SUPPLIER,
+        ERROR_GETTING_TOKEN
     }
 
     public void stop() {

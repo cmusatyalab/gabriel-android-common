@@ -14,7 +14,7 @@ import edu.cmu.cs.gabriel.protocol.Protos.ToClient;
 import edu.cmu.cs.gabriel.protocol.Protos.ResultWrapper;
 
 public class ResultObserver implements Observer<byte[]>  {
-    private String TAG = "ResultObserver";
+    private static final String TAG = "ResultObserver";
 
     private TokenManager tokenManager;
     private Consumer<ResultWrapper> consumer;
@@ -63,11 +63,7 @@ public class ResultObserver implements Observer<byte[]>  {
                     return;
                 }
 
-                try {
-                    consumer.accept(resultWrapper);
-                } catch (Exception e) {
-                    Log.e(TAG, "Consumer threw exception.", e);
-                }
+                consumer.accept(resultWrapper);
                 return;
             case WELCOMEORRESULT_NOT_SET:
                 throw new RuntimeException("Server sent empty message");
