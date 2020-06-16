@@ -14,6 +14,7 @@ import com.tinder.scarlet.websocket.okhttp.OkHttpClientUtils;
 import edu.cmu.cs.gabriel.client.observer.EventObserver;
 import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.protocol.Protos.FromClient;
+
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 
@@ -22,8 +23,8 @@ public class SocketWrapper {
     private GabrielSocket webSocketInterface;
 
     public SocketWrapper(
-            String serverURL, Application application, ResultObserver resultObserver,
-            EventObserver eventObserver) {
+            String serverURL, Application application, LifecycleRegistry lifecycleRegistry,
+            ResultObserver resultObserver, EventObserver eventObserver) {
 
         // HttpUrl can't parse websocket URLs
         serverURL = serverURL.replaceFirst("^ws://", "http://").replaceFirst("^wss://", "https://");
@@ -41,7 +42,7 @@ public class SocketWrapper {
 
         String wsURL = url.toString().replaceFirst("^http", "ws");
 
-        this.lifecycleRegistry = new LifecycleRegistry(0L);
+        this.lifecycleRegistry = lifecycleRegistry;
         this.lifecycleRegistry.onNext(Lifecycle.State.Started.INSTANCE);
 
         Lifecycle androidLifecycle = AndroidLifecycle.ofApplicationForeground(application);

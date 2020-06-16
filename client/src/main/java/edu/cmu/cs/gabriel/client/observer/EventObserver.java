@@ -11,11 +11,11 @@ public class EventObserver implements Observer<Event> {
     private static String TAG = "EventObserver";
 
     private TokenManager tokenManager;
-    private Runnable onDisconnect;
+    private Runnable onConnectionProblem;
 
-    public EventObserver(TokenManager tokenManager, Runnable onDisconnect) {
+    public EventObserver(TokenManager tokenManager, Runnable onConnectionProblem) {
         this.tokenManager = tokenManager;
-        this.onDisconnect = onDisconnect;
+        this.onConnectionProblem = onConnectionProblem;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class EventObserver implements Observer<Event> {
             if (receivedUpdate instanceof Event.OnConnectionOpened) {
                 this.tokenManager.start();
             } else if (receivedUpdate instanceof Event.OnConnectionFailed) {
-                this.onDisconnect.run();
+                this.onConnectionProblem.run();
                 this.tokenManager.stop();
             }
 
@@ -38,13 +38,12 @@ public class EventObserver implements Observer<Event> {
 
     @Override
     public void onError(Throwable throwable) {
-        Log.e(TAG, "event onError", throwable);
+        Log.e(TAG, "Event onError", throwable);
 
     }
 
     @Override
     public void onComplete() {
-        Log.i(TAG, "event onComplete");
-
+        Log.i(TAG, "Event onComplete");
     }
 }

@@ -18,10 +18,14 @@ public class ResultObserver implements Observer<byte[]>  {
 
     private TokenManager tokenManager;
     private Consumer<ResultWrapper> consumer;
+    Consumer<ResultWrapper.Status> onErrorResult;
 
-    public ResultObserver(TokenManager tokenManager, Consumer<ResultWrapper> consumer) {
+
+    public ResultObserver(TokenManager tokenManager, Consumer<ResultWrapper> consumer,
+                          Consumer<ResultWrapper.Status> onErrorResult) {
         this.tokenManager = tokenManager;
         this.consumer = consumer;
+        this.onErrorResult = onErrorResult;
     }
 
     @SuppressLint("Assert")
@@ -47,13 +51,15 @@ public class ResultObserver implements Observer<byte[]>  {
                     this.tokenManager.returnToken(resultWrapper.getFilterPassed());
                 }
 
-                if (resultWrapper.getStatus() == 
-                    ResultWrapper.Status.NO_ENGINE_FOR_FILTER_PASSED) {
-                    throw new RuntimeException("No engine for Filter Passed");
-                }                
+                ResultWrapper.Status status = resultWrapper.getStatus();
+                if (status == ResultWrapper.Status.ENGINE_ERROR ||
+                        status == ResultWrapper.Status.WRONG_INPUT_FORMAT ||
+                        status == ResultWrapper.Status.NO_ENGINE_FOR_FILTER_PASSED) {
+                    this.onErrorResult.accept(status);
+                }
                 
-                if (resultWrapper.getStatus() != ResultWrapper.Status.SUCCESS) {
-                    Log.e(TAG, "Output status was: " + resultWrapper.getStatus().name());
+                if (status != ResultWrapper.Status.SUCCESS) {
+                    Log.e(TAG, "Output status was: " + status.name());
                     return;
                 }
 
@@ -66,7 +72,8 @@ public class ResultObserver implements Observer<byte[]>  {
             case WELCOMEORRESULT_NOT_SET:
                 throw new RuntimeException("Server sent empty message");
             default:
-                throw new IllegalStateException("Unexpected value: " + toClient.getWelcomeOrResultCase());
+                throw new IllegalStateException("Unexpected toClient value: " +
+                        toClient.getWelcomeOrResultCase().name());
         }
     }
 

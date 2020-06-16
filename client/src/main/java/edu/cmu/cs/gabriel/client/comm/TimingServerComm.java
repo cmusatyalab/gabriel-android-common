@@ -1,10 +1,10 @@
 package edu.cmu.cs.gabriel.client.comm;
 
 import android.app.Application;
+import android.os.SystemClock;
 import android.util.Log;
 import android.util.LongSparseArray;
 
-import edu.cmu.cs.gabriel.client.observer.EventObserver;
 import edu.cmu.cs.gabriel.client.observer.ResultObserver;
 import edu.cmu.cs.gabriel.client.socket.TimingSocketWrapper;
 import edu.cmu.cs.gabriel.client.function.Consumer;
@@ -23,10 +23,10 @@ public class TimingServerComm extends ServerCommCore {
 
     // TODO: Replace these constructors with a builder to allow setting tokenLimit without setting
     //       outputFreq
-    public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
-                            String serverURL, Application application,
-                            int tokenLimit, final int outputFreq) {
-        super(tokenLimit);
+    public TimingServerComm(
+            final Consumer<ResultWrapper> consumer, Consumer<String> onDisconnect, String serverURL,
+            Application application, int tokenLimit, final int outputFreq) {
+        super(onDisconnect, tokenLimit, application);
 
         this.receivedTimestamps = new LongSparseArray<>();
 
@@ -34,11 +34,7 @@ public class TimingServerComm extends ServerCommCore {
             @Override
             public void accept(ResultWrapper resultWrapper) {
                 consumer.accept(resultWrapper);
-
-                // TODO: Change to java.time.Instant once we can stop supporting Google Glass
-                //       Explorer Edition
-                long timestamp = System.currentTimeMillis();
-
+                long timestamp = SystemClock.elapsedRealtime();
                 TimingServerComm.this.receivedTimestamps.put(resultWrapper.getFrameId(), timestamp);
                 TimingServerComm.this.count++;
                 TimingServerComm.this.intervalCount++;
@@ -56,38 +52,31 @@ public class TimingServerComm extends ServerCommCore {
                     Log.i(TAG, "Interval FPS: " + intervalFps);
 
                     TimingServerComm.this.intervalCount = 0;
-
-                    // TODO: change to java.time.Instant once we can stop supporting Google Glass
-                    //       Explorer Edition
-                    TimingServerComm.this.intervalStartTime = System.currentTimeMillis();
+                    TimingServerComm.this.intervalStartTime = SystemClock.elapsedRealtime();
                 }
             }
         };
 
-        ResultObserver resultObserver = new ResultObserver(this.tokenManager, timingConsumer);
-        EventObserver eventObserver = new EventObserver(this.tokenManager, onDisconnect);
+        ResultObserver resultObserver = new ResultObserver(
+                this.tokenManager, timingConsumer, this.onErrorResult);
         this.timingSocketWrapper = new TimingSocketWrapper(
-                serverURL, application, resultObserver, eventObserver);
+                serverURL, application, this.lifecycleRegistry, resultObserver, this.eventObserver);
         this.socketWrapper = this.timingSocketWrapper;
 
         this.count = 0;
         this.intervalCount = 0;
-
-        // TODO: Change to java.time.Instant once we can stop supporting Google Glass Explorer
-        //       Edition
-        this.startTime = System.currentTimeMillis();
-
+        this.startTime = SystemClock.elapsedRealtime();
         this.intervalStartTime = this.startTime;
     }
 
-    public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
-                            String serverURL, Application application,
-                            int tokenLimit) {
+    public TimingServerComm(
+            Consumer<ResultWrapper> consumer, Consumer<String> onDisconnect, String serverURL,
+            Application application, int tokenLimit) {
         this(consumer, onDisconnect, serverURL, application, tokenLimit,
                 TimingServerComm.DEFAULT_OUTPUT_FREQ);
     }
 
-    public TimingServerComm(final Consumer<ResultWrapper> consumer, Runnable onDisconnect,
+    public TimingServerComm(Consumer<ResultWrapper> consumer, Consumer<String> onDisconnect,
                             String serverURL, Application application) {
         this(consumer, onDisconnect, serverURL, application, Integer.MAX_VALUE);
     }
@@ -101,7 +90,7 @@ public class TimingServerComm extends ServerCommCore {
              long frameId = sentTimestamps.keyAt(i);
              Long sentTimestamp = sentTimestamps.valueAt(i);
 
-             Long receivedTimestamp = receivedTimestamps.get(frameId);
+             Long receivedTimestamp = this.receivedTimestamps.get(frameId);
              if (receivedTimestamp == null) {
                 Log.e(TAG, "Frame with ID " + frameId + " never received");
              } else {
