@@ -8,7 +8,7 @@ Android library for communicating with a
 Add the lines `implementation 'edu.cmu.cs.gabriel:client:0.2.0'` and
 `implementation 'edu.cmu.cs.gabriel:protocol:0.1.15'` to your app's build.gradle
 file.
-Your project must include either the `jcenter()`repository or the
+Your project must include either the `jcenter()` repository or the
 `mavenCentral()` repository.
 
 Your app must allow cleartext traffic. If your app does not have an Android
@@ -24,17 +24,18 @@ for more details.
 
 Create an instance of `edu.cmu.cs.gabriel.client.comm.ServerComm`. The
 constructor takes an instance of `edu.cmu.cs.gabriel.client.function.Consumer`
-that gets run whenever a new result is available from the server. The
-`ServerComm` constructor also takes an `onDisconnect` `Consuer` that gets called
-when there is a connection problem. This `onDisconnect` consumer should start
-the process of presenting an error message to the user, cleaning up the app
-state, and then bringing the user back to a screen to modify connection
+that gets run whenever a new result is available from the server.
+[Example](https://github.com/cmusatyalab/openrtist/blob/dfc3e246031a3006bdf0f5fcaa192ed0a5237ab8/android-client/app/src/main/java/edu/cmu/cs/gabriel/network/OpenrtistComm.java#L18).
+The `ServerComm` constructor also takes an `onDisconnect` `Consuer` that gets
+called when there is a connection problem. This `onDisconnect` consumer should
+start the process of presenting an error message to the user, cleaning up the
+app state, and then bringing the user back to a screen to modify connection
 settings.
 
 Send messages to the server using `ServerComm`'s `sendNoWait`, `sendBlocking`,
-or `sendSupplier` methods. See
-[here](https://github.com/cmusatyalab/openrtist/blob/dfc3e246031a3006bdf0f5fcaa192ed0a5237ab8/android-client/app/src/main/java/edu/cmu/cs/gabriel/network/BaseComm.java#L152)
-for an example. You should check the result from all three of these functions.
+or `sendSupplier` methods.
+[Example](https://github.com/cmusatyalab/openrtist/blob/dfc3e246031a3006bdf0f5fcaa192ed0a5237ab8/android-client/app/src/main/java/edu/cmu/cs/gabriel/network/BaseComm.java#L152).
+You should check the result from all three of these functions.
 The most common reason that `sendBlocking` and `sendSupplier` will fail is that
 the server does not have any engines that consume the specified filter. You can
 explicitly check this using `ServerComm#acceptsInputForFilter`.
@@ -45,14 +46,15 @@ This library includes instrumentation to measure the average RTT and FPS. These
 results can be sent using
 [Log](https://developer.android.com/reference/android/util/Log) or written to a
 file. You can also implement your own `Consumer<RttFps>` that writes results to
-a database and/or loggs additional information.
+a database and/or logs additional information.
 
 I recommend creating a separate
 [product flavor](https://developer.android.com/studio/build/build-variants#product-flavors)
 for measuerments. Create an instance of `MeasurementServerComm` instead of
-`ServerComm`. Pass `LogRttFpsConsumer` to the constructor of
+`ServerComm`. Pass an instance of `LogRttFpsConsumer` to the constructor of
 `MeasurementServerComm` to send measurements to log output. Use
 `CsvLogRttFpsConsumer` to write measurements to a file.
+[Example](https://github.com/cmusatyalab/openrtist/blob/dfc3e246031a3006bdf0f5fcaa192ed0a5237ab8/android-client/app/src/measurement/java/edu/cmu/cs/gabriel/network/MeasurementComm.java#L24)
 
 ## Publishing Changes to Maven Central
 
